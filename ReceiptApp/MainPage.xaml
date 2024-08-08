@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ReceiptApp.MainPage"
+             xmlns:viewmodel="clr-namespace:ReceiptApp"
+             xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             x:DataType="viewmodel:MainViewModel">
+    <ScrollView>
+    <VerticalStackLayout>
+        <Label Text="Data" FontSize="Large" Margin="0,20,0,0" />
+        <Grid RowDefinitions="Auto,*,Auto">
+            <VerticalStackLayout Grid.Row="0" Margin="10">
+                <Label Text="Filters" FontSize="Large" />
+                <Grid ColumnDefinitions="*,*,*,*">
+                    <Entry Placeholder="Min Sum" Text="{Binding MinSum}" Grid.Column="0" />
+                    <Entry Placeholder="Max Sum" Text="{Binding MaxSum}" Grid.Column="1" />
+                    <DatePicker Date="{Binding StartDate}" Grid.Column="2" />
+                    <DatePicker Date="{Binding EndDate}" Grid.Column="3" />
+                </Grid>
+                <Picker ItemsSource="{Binding ExpenseTypes}" SelectedItem="{Binding SelectedExpenseType}" />
+                <Picker ItemsSource="{Binding OrderByOptions}" SelectedItem="{Binding OrderBy}" />
+                <Button Text="Apply Filters" Command="{Binding LoadReceiptsCommand}" />
+            </VerticalStackLayout>    
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Receipts}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewmodel:Receipt">
+                        <Frame BorderColor="LightGray" Margin="10" Padding="10">
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto,Auto">
+                                <Label Text="{Binding Id}" Grid.ColumnSpan="3" />
+                                <Label Text="{Binding Sum, StringFormat='Sum: {0:C}'}" Grid.Row="1" />
+                                <Label Text="{Binding Date, StringFormat='Date: {0:d}'}" Grid.Row="2" />
+                                <Label Text="{Binding Description}" Grid.Row="3" />
+                                <Label Text="{Binding ExpenseType}" Grid.Row="4" />
+                                <Button Text="✏️" Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainViewModel}}, Path=EditReceiptCommand}"
+                                        CommandParameter="{Binding .}" Grid.Column="1" Grid.RowSpan="5" />
+                                <Button Text="🗑️" Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainViewModel}}, Path=DeleteReceiptCommand}"
+                                        CommandParameter="{Binding .}" Grid.Column="2" Grid.RowSpan="5" />
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,*">
+                <Button Text="Previous" Command="{Binding PreviousPageCommand}" IsEnabled="{Binding CanGoToPreviousPage}" Grid.Column="1" />
+                <Button Text="Next" Command="{Binding NextPageCommand}" IsEnabled="{Binding CanGoToNextPage}" Grid.Column="2" />
+            </Grid>
+        </Grid>
+
+        <BoxView Color="Gray" HeightRequest="1" Margin="0,20,0,20" />
+
+        <Label Text="Stats" FontSize="Large" Margin="0,0,0,20" />
+        <ScrollView>
+            <VerticalStackLayout Spacing="20" Padding="20">
+                <Label Text="Expense Type Distribution" FontSize="Large" />
+                <microcharts:ChartView Chart="{Binding ExpenseTypeChart}" HeightRequest="200" />
+
+                <Label Text="Monthly Total Sum" FontSize="Large" />
+                <microcharts:ChartView Chart="{Binding MonthlyTotalSumChart}" HeightRequest="200" />
+
+                <Label Text="Average Sum by Expense Type" FontSize="Large" />
+                <microcharts:ChartView Chart="{Binding AverageSumByExpenseTypeChart}" HeightRequest="200" />
+
+                <Label Text="Receipts per Day of Week" FontSize="Large" />
+                <microcharts:ChartView Chart="{Binding ReceiptsPerDayOfWeekChart}" HeightRequest="200" />
+
+                <Label Text="Top Locations" FontSize="Large" />
+                <microcharts:ChartView Chart="{Binding TopLocationsChart}" HeightRequest="200" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
