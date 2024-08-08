@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microcharts;
 using SkiaSharp;
 using Microsoft.Maui.Controls.Xaml;
+using System.Globalization;
 
 namespace ReceiptApp;
 
@@ -21,37 +22,16 @@ public partial class MainPage : ContentPage
 
 public partial class MainViewModel : ObservableObject
 {
-    private List<ExpenseType> _expenseTypes;
-    public List<ExpenseType> ExpenseTypes
-    {
-        get { return _expenseTypes; }
-        set { SetProperty(ref _expenseTypes, value); }
-    }
-
-    private List<string> _orderByOptions;
-    public List<string> OrderByOptions
-    {
-        get { return _orderByOptions; }
-        set { SetProperty(ref _orderByOptions, value); }
-    }
+    public List<ExpenseType> ExpenseTypes { get; set; }
+    public List<string> OrderByOptions { get; set; }
+    public bool CanGoToPreviousPage { get; set; }
+    public bool CanGoToNextPage { get; set; }
     
-    private bool _canGoToPreviousPage;
-    public bool CanGoToPreviousPage
-    {
-        get { return _canGoToPreviousPage; }
-        set { SetProperty(ref _canGoToPreviousPage, value); }
-    }
-
-    private bool _canGoToNextPage;
-    public bool CanGoToNextPage
-    {
-        get { return _canGoToNextPage; }
-        set { SetProperty(ref _canGoToNextPage, value); }
-    }
-
 
     private readonly HttpClient _httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:5252") };
 
+
+    #region Observable props    
     [ObservableProperty]
     private ObservableCollection<Receipt> receipts = new();
 
@@ -102,6 +82,7 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private Chart topLocationsChart;
+    #endregion
 
     public MainViewModel()
     {
@@ -130,8 +111,10 @@ public partial class MainViewModel : ObservableObject
             var result = JsonSerializer.Deserialize<ReceiptResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             Receipts = new ObservableCollection<Receipt>(result.Receipts);
             TotalPages = result.TotalPages;
-            CanGoToPreviousPage = CurrentPage > 1;
-            CanGoToNextPage = CurrentPage < TotalPages;     
+            OnPropertyChanged(nameof(CanGoToPreviousPage));
+            // CanGoToPreviousPage = CurrentPage > 1;
+            OnPropertyChanged(nameof(CanGoToNextPage));
+            // CanGoToNextPage = CurrentPage < TotalPages;     
         }
     }
 
@@ -200,10 +183,10 @@ public partial class MainViewModel : ObservableObject
     private async Task LoadStatistics()
     {
         await LoadExpenseTypeStats();
-        //await LoadMonthlyTotalSumStats();
-        //await LoadAverageSumByExpenseTypeStats();
-        //await LoadReceiptsPerDayOfWeekStats();
-        //await LoadTopLocationsStats();
+        await LoadMonthlyTotalSumStats();
+        await LoadAverageSumByExpenseTypeStats();
+        await LoadReceiptsPerDayOfWeekStats();
+        await LoadTopLocationsStats();
     }
     
 
@@ -214,18 +197,99 @@ public partial class MainViewModel : ObservableObject
         {
             var content = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<List<ExpenseTypeCount>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            ExpenseTypeChart = new PieChart
+            MonthlyTotalSumChart = new BarChart
             {
                 Entries = result.Select(r => new ChartEntry(r.Count)
                 {
                     Label = r.ExpenseType.ToString(),
-                    Color = SKColor.Parse(GetRandomColor())
+                    ValueLabel = r.Count.ToString()
                 }).ToArray()
             };
+    
         }
     }
 
-    //TODO: Implement methods 4 other statistical charts
+    private async Task LoadMonthlyTotalSumStats()
+    {
+        var response = await _httpClient.GetAsync("stats/total-sum-by-month");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<List<TotalSumByMonthAndYear>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            
+            ExpenseTypeChart = new LineChart
+            {
+                Entries = result.Select(r => new ChartEntry(r.TotalSum)
+                {
+                    Label = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(r.Month),
+                    ValueLabel = r.TotalSum.ToString(),
+                }).ToArray()
+            };
+    
+        }
+    }
+
+    private async Task LoadAverageSumByExpenseTypeStats()
+    {
+        var response = await _httpClient.GetAsync("stats/average-sum-by-expense-type");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<List<ExpenseTypeAverageSum>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            
+            ExpenseTypeChart = new BarChart
+            {
+                Entries = result.Select(r => new ChartEntry(r.AverageSum)
+                {
+                    Label = r.ExpenseType.ToString(),
+                    ValueLabel = r.AverageSum.ToString(),
+                }).ToArray()
+            };
+    
+        }
+    }
+    
+    private async Task LoadReceiptsPerDayOfWeekStats()
+    {
+        var response = await _httpClient.GetAsync("stats/receipts-per-day-of-week");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<List<ReceiptsPerDayCount>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            
+            ExpenseTypeChart = new DonutChart
+            {
+                Entries = result.Select(r => new ChartEntry(r.Count)
+                {
+                    Label = r.DayOfWeek.ToString(),
+                    ValueLabel = r.Count.ToString(),
+                    Color = SKColor.Parse(GetRandomColor())
+                }).ToArray()
+            };
+    
+        }
+    }
+
+    private async Task LoadTopLocationsStats()
+    {
+        var response = await _httpClient.GetAsync("stats/top-locations");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<List<ReceiptsPerLocationCount>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            
+            ExpenseTypeChart = new BarChart
+            {
+                Entries = result.Select(r => new ChartEntry(r.Count)
+                {
+                    Label = r.Location,
+                    ValueLabel = r.Count.ToString(),
+                }).ToArray()
+            };
+    
+        }
+    }
+
 
     private string GetRandomColor()
     {
@@ -242,8 +306,10 @@ public record Receipt(
     string Location
 );
 
-public enum ExpenseType {
-    Food, Transportation,
+public enum ExpenseType 
+{
+    Food, 
+    Transportation,
     Entertainment,
     Utilities,
     Other
@@ -261,5 +327,30 @@ public class ReceiptResponse
 public class ExpenseTypeCount
 {
     public ExpenseType ExpenseType { get; set; }
+    public int Count { get; set; }
+}
+
+public class TotalSumByMonthAndYear
+{
+    public int Year { get; set; }
+    public int Month { get; set; }
+    public float TotalSum { get; set; }
+}
+
+public class ExpenseTypeAverageSum
+{
+    public ExpenseType ExpenseType { get; set; }
+    public float AverageSum { get; set; }
+}
+
+public class ReceiptsPerDayCount
+{
+    public DayOfWeek DayOfWeek { get; set; }
+    public int Count { get; set; }
+}
+
+public class ReceiptsPerLocationCount
+{
+    public string Location { get; set; }
     public int Count { get; set; }
 }
