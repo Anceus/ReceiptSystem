@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ReceiptApp.DashboardPage"
+             xmlns:vm="clr-namespace:ReceiptApp.ViewModels"
+             xmlns:microcharts="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+             x:DataType="vm:DashboardViewModel">
+    <ScrollView>
+    <VerticalStackLayout >
+        <Grid RowDefinitions="Auto" Margin="20" ColumnSpacing="20" RowSpan="20">
+            <Grid.ColumnDefinitions >
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <StackLayout>
+                <Label Text="Receipt number by Expenses Type" HorizontalOptions="Center" FontSize="30"/>
+                <BoxView HeightRequest="40" BackgroundColor="White"/>
+                <microcharts:ChartView Chart="{Binding ExpenseTypeChart}" HeightRequest="400" HorizontalOptions="Fill"/>
+
+                <Label Text="Monthly Total sum" HorizontalOptions="Center" FontSize="30"/>
+                <BoxView HeightRequest="40" BackgroundColor="White"/>
+
+                <microcharts:ChartView Chart="{Binding MonthlyTotalSumChart}" HeightRequest="400" HorizontalOptions="FillAndExpand" VerticalOptions="Start" />
+
+                <Label Text="Top receipt locations" HorizontalOptions="Center" FontSize="30"/>
+                <BoxView HeightRequest="40" BackgroundColor="White"/>
+                <microcharts:ChartView Chart="{Binding TopLocationsChart}" HeightRequest="400" HorizontalOptions="FillAndExpand" VerticalOptions="Start" />
+
+            </StackLayout>
+             
+            <StackLayout Grid.Column="1">
+                <Label Text="Average Sum By Expenses Type" HorizontalOptions="Center" FontSize="30"/>
+                <BoxView HeightRequest="40" BackgroundColor="White"/>
+                <microcharts:ChartView Chart="{Binding AverageSumByExpenseTypeChart}" HeightRequest="400" HorizontalOptions="FillAndExpand" VerticalOptions="Start" />
+
+                <Label Text="Receipts per day of week" HorizontalOptions="Center" FontSize="30"/>
+                <BoxView HeightRequest="40" BackgroundColor="White"/>
+                <microcharts:ChartView Chart="{Binding ReceiptsPerDayOfWeekChart}" HeightRequest="400" HorizontalOptions="FillAndExpand" VerticalOptions="Start" />
+
+            </StackLayout>
+
+
+
+            
+
+        </Grid>
+            
+            <!-- 
+            
+            
+             -->
+    </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
