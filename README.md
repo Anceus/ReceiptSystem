@@ -5,6 +5,9 @@
 This project is a .NET API for managing a Receipt System. It allows you to perform CRUD operations on receipts, filter and sort them, and provides several statistical endpoints to analyze the data. The project is designed to be a backend for applications that need to track expenses, offering endpoints to retrieve receipts, generate reports, and analyze spending patterns.
 <img width="1726" alt="image" src="https://github.com/user-attachments/assets/fbda1e3d-313c-4859-b597-90fbde309ec4">
 
+<img width="1726" alt="image" src="https://github.com/user-attachments/assets/f3d27fca-bb87-4a60-a439-a02b18ad8f37">
+
+
 ## Features
 
 - **CRUD Operations**: Create, read, update, and delete receipts.
