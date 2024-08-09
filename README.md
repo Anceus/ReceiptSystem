@@ -1,4 +1,4 @@
-<img width="1727" alt="image" src="https://github.com/user-attachments/assets/1c84cb11-c1a7-4365-bb22-495a8baf0905"># Receipt System API
+# Receipt System API
 
 ## Overview
 
